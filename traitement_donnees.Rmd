@@ -1,0 +1,1004 @@
+---
+title: "Statistique descriptive"
+author: "Jumbong junior"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+# Chargement de library
+library(questionr)
+library(tidyverse)
+library(readr)
+```
+
+
+```{r include=FALSE}
+# Chargement des données
+data <- read_csv("data.csv",show_col_types = FALSE)
+
+
+```
+
+
+# Tranformation des colonnes  en date 
+```{r}
+# Fonction qui transforme une colonne en date
+dateT<-function(x)
+for(i in 1:length(x)){
+  if (x[i]=="NULL"){
+    x[i]<-NA
+  }else{
+    as.Date(x[i])
+  }
+  return(x)
+}
+
+
+```
+
+# Création de la colonne date_deces qui récupère deces_date en format date.
+
+```{r}
+
+data <- mutate(data, date_deces=as.Date(dateT(data$deces_date)))
+data <- data %>% 
+  select(-deces_date)
+```
+
+
+```{r}
+# Transformation des données en tibble en prenant la
+data <- as_tibble(rownames_to_column(data))
+
+
+
+```
+
+```{r}
+
+# Identifier les colonnes de type caractère
+colonnes_caracteres <- which(sapply(data, is.character))
+colonnes_caracteres
+
+
+
+```
+
+Les vrais caractères sont les variables suivantes:
+ 
+     
+   " indicatrice_temperature_j0" ,   
+    "indicatrice_temperature_j1" ,
+    "indicatrice_temperature_j2" , 
+    "indicatrice_temperature_j3" ,"gender" ,"anchor_year_group","ventilation_mechanique_J0" ,"ventilation_mechanique_J1","ventilation_mechanique_J2" ,"ventilation_mechanique_J3" ,"dialysis_patient_J0" ,"dialysis_patient_J1", "dialysis_patient_J2 " , "dialysis_patient_J3","cause_arret_cardiac"     
+
+# Transformation des faux caractères en numeric
+
+
+```{r include=FALSE}
+colonnes_garder<-which(colnames(data) %in% c(
+  "origin",
+  "dialysis_patient_J0" ,"dialysis_patient_J1", "dialysis_patient_J2" , "dialysis_patient_J3","cause_arret_cardiac","indicatrice_temperature_j0" ,   "indicatrice_temperature_j1" , "indicatrice_temperature_j2" , 
+  "indicatrice_temperature_j3" ,"gender" ,"anchor_year_group","ventilation_mechanique_J0" ,"ventilation_mechanique_J1","ventilation_mechanique_J2" ,"ventilation_mechanique_J3" 
+))
+colonnes_garder
+for (i in colonnes_caracteres) {
+  
+  
+  if (!(i %in% colonnes_garder)) {
+    # Convertir la colonne en vecteur
+  colonne_vecteur <- unlist(data[, i])
+  
+  # Convertir le vecteur en données numériques
+  data[, i] <- as.numeric(colonne_vecteur)
+  
+  }
+}
+
+```
+
+
+```{r}
+str(data)
+```
+
+```{r}
+# Récupère les colonnes de types numeric
+colonnes_numeric <- which(sapply(data, is.numeric))
+colonnes_numeric
+```
+
+Ici  les faux numériques sont :
+
+"heart_failure" ,"obesity","chronic_pulmonary_disease"  ,     "liver_disease","diabetes","renal_disease","malignant_cancer" ,"aids", "cause_arret_cardiac", "indicatrice_deces_j0", "indicatrice_deces_j1" ,"indicatrice_deces_j2" , "indicatrice_deces_j3","indicatrice_deces_j14" ,"indicatrice_deces_j30"
+
+# Transformation des faux numériques en caractères.
+
+```{r include=FALSE}
+colonnes_faux_num<-which(colnames(data) %in% c(
+  "heart_failure" ,"obesity","chronic_pulmonary_disease",       "liver_disease","diabetes","renal_disease","malignant_cancer" ,"aids", "cause_arret_cardiac", "indicatrice_deces_j0", "indicatrice_deces_j1" ,"indicatrice_deces_j2" , "indicatrice_deces_j3","indicatrice_deces_j14" ,"indicatrice_deces_j30"
+))
+
+for (i in colonnes_faux_num) {
+  
+  
+    # Convertir la colonne en vecteur
+  colonne_vecteur <- unlist(data[, i])
+  
+  # Convertir le vecteur en caractères
+  data[, i] <- as.character(colonne_vecteur)
+  
+  
+}
+
+```
+
+
+# Transformation des caractères en factor
+
+
+
+
+```{r}
+df <- data %>%
+  mutate_if(is.character, ~factor(., exclude = "NULL"))
+
+```
+
+
+
+
+# Statistique univarié à J1
+
+```{r}
+glimpse(df)
+```
+
+
+# Variables qualitatives
+
+```{r}
+freq(df$anchor_age, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+
+```{r}
+
+freq(df$gender, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+```{r}
+# Temprérature à JO
+freq(df$indicatrice_temperature_j0, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+```{r}
+#indicatrice de la glycémie à J0
+freq(df$indicatrice_glycemie_j0, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Le nombre de décès à J0
+
+```{r}
+#indicatrice_deces_j0
+freq(df$indicatrice_deces_j0, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Nombre d'individus dyalisés à J0
+
+```{r}
+# Individus dialysés à J1
+freq(df$dialysis_patient_J1, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une défaillance cardiaque
+
+```{r}
+# heart_failure
+
+freq(df$heart_failure, valid = FALSE, total = TRUE, sort = "dec")
+
+```
+
+Les individus diagnostiqués obèses
+```{r}
+#obesity  
+freq(df$obesity, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus ayant une maladie pulmonaire chronique
+
+```{r}
+#chronic_pulmonary_disease  
+freq(df$chronic_pulmonary_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une maladie hépathique
+
+```{r}
+#liver_disease        
+freq(df$liver_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont le diabètes
+
+```{r}
+#diabetes       
+freq(df$diabetes, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une maladie rénale
+
+```{r}
+#renal_disease  
+freq(df$renal_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus atteint du cancer
+
+```{r}
+#malignant_cancer 
+freq(df$malignant_cancer, valid = FALSE, total = TRUE, sort = "dec")
+
+```
+
+Les individus atteint du VIH
+
+```{r}
+#aids   
+freq(df$aids, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+# variables quantitatives
+
+```{r}
+#thermodilution
+
+
+summary(df$`index_cardiac_min_J0(L/min/m2)`)
+summary(df$`index_cardiac_moyen_J0(L/min/m2)`)
+```
+
+```{r}
+#thermodilution
+
+
+summary(df$`thermodilutionCO_max_J0(L/min)`)
+summary(df$`thermodilutionCO_min_J0(L/min)`)
+```
+
+```{r}
+
+#phlabevents_J0
+summary(df$phlabevents_J0)
+```
+
+```{r}
+#albumin_J0
+summary(df$`albumin_J0(g/dL)`)
+```
+
+```{r}
+#lactateJ1
+summary(df$`lactate_J0(mmol/L)` )
+
+```
+
+```{r}
+# PaO2_FiO2
+summary(df$PaO2_FiO2_max_J0 )
+summary(df$PaO2_FiO2_min_J0 )
+
+```
+```{r}
+# vis
+summary(df$vis_j0)
+```
+
+```{r}
+# bilan_entre_sortie_j0
+summary( df$bilan_entre_sortie_j0 )
+```
+
+```{r}
+# Répartition du bilan
+hist(df$bilan_entre_sortie_j1, col = "skyblue",
+     main = "Répartition bilan/sortiej1",
+     xlab = "bilan",
+     ylab = "Effectif")
+```
+
+```{r}
+
+hist(df$anchor_age, col = "skyblue",
+     main = "Répartition bilan/sortiej1",
+     xlab = "bilan",
+     ylab = "Effectif", breaks = 2)
+```
+
+# Statistique bivariée
+
+```{r}
+#Croisement
+boxplot(df$bilan_entre_sortie_j0 ~ df$gender)
+```
+
+
+```{r}
+boxplot(df$bilan_entre_sortie_j0 ~ df$dialysis_patient_J0)
+```
+
+
+```{r}
+#heart_failure 
+boxplot(df$bilan_entre_sortie_j0 ~ df$heart_failure)
+```
+
+
+```{r}
+#obesity     
+boxplot(df$bilan_entre_sortie_j0 ~ df$obesity)
+```
+
+
+```{r}
+#chronic_pulmonary_disease    
+boxplot(df$bilan_entre_sortie_j0 ~ df$chronic_pulmonary_disease)
+```
+
+
+```{r}
+#liver_disease   
+boxplot(df$bilan_entre_sortie_j0 ~ df$liver_disease)
+```
+
+
+
+
+```{r}
+# renal_disease  
+boxplot(df$bilan_entre_sortie_j0 ~ df$diabetes)
+```
+
+
+```{r}
+# malignant_cancer 
+boxplot(df$bilan_entre_sortie_j0 ~ df$renal_disease)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df$bilan_entre_sortie_j0 ~ df$malignant_cancer)
+```
+
+```{r}
+# aids            
+boxplot(df$bilan_entre_sortie_j0 ~ df$aids)
+```
+```{r}
+# malignant_cancer            
+boxplot(df$bilan_entre_sortie_j0 ~ df$indicatrice_deces_j0)
+```
+```{r}
+# malignant_cancer            
+boxplot(df$bilan_entre_sortie_j0 ~ df$indicatrice_temperature_j0)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df$bilan_entre_sortie_j0 ~ df$indicatrice_glycemie_j0)
+```
+
+
+```{r warning=FALSE}
+#vis_j1
+ggplot(df) + geom_point(aes(x = anchor_age, y = abs(bilan_entre_sortie_j0)))
+
+```
+
+
+```{r warning=FALSE}
+ggplot(df) + geom_point(aes(x = `lactate_J0(mmol/L)`, y = bilan_entre_sortie_j0))
+```
+
+```{r message=FALSE, warning=FALSE}
+#phlabevents_J1
+ggplot(df) + geom_point(aes(x = phlabevents_J0, y = bilan_entre_sortie_j0))
+```
+
+```{r warning=FALSE}
+ggplot(df) + geom_point(aes(x = `albumin_J0(g/dL)`, y = bilan_entre_sortie_j0))
+```
+
+```{r warning=FALSE}
+
+ggplot(df) + geom_point(aes(x =`index_cardiac_min_J0(L/min/m2)`, y = bilan_entre_sortie_j0))
+```
+
+# Statistiques descriptives à J1
+
+Pour faire la statistique descriptive à J1, on enlève tous ceux qui sont morts à JO.
+  
+```{r}
+# Selectionne tous les individus qui ne sont pas morts à J0
+df1<-df %>% 
+  filter(indicatrice_deces_j0==0)
+```
+
+
+# Statistique univarié à J1
+
+Bref aperçu de toutes les variables.
+
+```{r}
+glimpse(df1)
+```
+
+
+# Variables qualitatives
+
+```{r}
+freq(df1$anchor_age, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+
+```{r}
+
+freq(df1$gender, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+```{r}
+# Temprérature à JO
+freq(df1$indicatrice_temperature_j1, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+```{r}
+#indicatrice de la glycémie à J0
+freq(df1$indicatrice_glycemie_j1, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Le nombre de décès à J0
+
+```{r}
+#indicatrice_deces_j0
+freq(df1$indicatrice_deces_j1, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Nombre d'individus dyalisés à J0
+
+```{r}
+# Individus dialysés à J1
+freq(df1$dialysis_patient_J1, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une défaillance cardiaque
+
+```{r}
+# heart_failure
+
+freq(df1$heart_failure, valid = FALSE, total = TRUE, sort = "dec")
+
+```
+
+Les individus diagnostiqués obèses
+```{r}
+#obesity  
+freq(df1$obesity, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus ayant une maladie pulmonaire chronique
+
+```{r}
+#chronic_pulmonary_disease  
+freq(df1$chronic_pulmonary_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une maladie hépathique
+
+```{r}
+#liver_disease        
+freq(df1$liver_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont le diabètes
+
+```{r}
+#diabetes       
+freq(df1$diabetes, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une maladie rénale
+
+```{r}
+#renal_disease  
+freq(df1$renal_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus atteint du cancer
+
+```{r}
+#malignant_cancer 
+freq(df1$malignant_cancer, valid = FALSE, total = TRUE, sort = "dec")
+
+```
+
+Les individus atteint du VIH
+
+```{r}
+#aids   
+freq(df1$aids, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+# variables quantitatives
+
+```{r}
+#thermodilution
+
+
+summary(df1$`index_cardiac_min_J1(L/min/m2)`)
+summary(df1$`index_cardiac_moyen_J1(L/min/m2)`)
+```
+
+```{r}
+#thermodilution
+
+
+summary(df1$`thermodilutionCO_max_J1(L/min)`)
+summary(df1$`thermodilutionCO_min_J1(L/min)`)
+```
+
+```{r}
+
+#phlabevents_J0
+summary(df1$phlabevents_J1)
+```
+
+```{r}
+#albumin_J0
+summary(df1$`albumin_J1(g/dL)`)
+```
+
+```{r}
+#lactateJ1
+summary(df1$`lactate_J0(mmol/L)` )
+
+```
+
+```{r}
+# PaO2_FiO2
+summary(df1$PaO2_FiO2_max_J1 )
+summary(df1$PaO2_FiO2_min_J1 )
+
+```
+```{r}
+# vis
+summary(df1$vis_j1)
+```
+
+```{r}
+# bilan_entre_sortie_j0
+summary( df1$bilan_entre_sortie_j1 )
+```
+
+```{r}
+# Répartition du bilan
+hist(df1$bilan_entre_sortie_j1, col = "skyblue",
+     main = "Répartition bilan/sortiej1",
+     xlab = "bilan",
+     ylab = "Effectif")
+```
+
+```{r}
+
+hist(df1$anchor_age, col = "skyblue",
+     main = "Répartition bilan/sortiej1",
+     xlab = "bilan",
+     ylab = "Effectif", breaks = 2)
+```
+
+# Statistique bivariée
+
+```{r}
+#Croisement
+boxplot(df1$bilan_entre_sortie_j1 ~ df$gender)
+```
+
+
+```{r}
+boxplot(df1$bilan_entre_sortie_j1 ~ df$dialysis_patient_J1)
+```
+
+
+```{r}
+#heart_failure 
+boxplot(df1$bilan_entre_sortie_j1 ~ df$heart_failure)
+```
+
+
+```{r}
+#obesity     
+boxplot(df1$bilan_entre_sortie_j1 ~ df$obesity)
+```
+
+
+```{r}
+#chronic_pulmonary_disease    
+boxplot(df1$bilan_entre_sortie_j1 ~ df$chronic_pulmonary_disease)
+```
+
+
+```{r}
+#liver_disease   
+boxplot(df1$bilan_entre_sortie_j1 ~ df$liver_disease)
+```
+
+
+
+
+```{r}
+# renal_disease  
+boxplot(df1$bilan_entre_sortie_j1 ~ df$diabetes)
+```
+
+
+```{r}
+# malignant_cancer 
+boxplot(df1$bilan_entre_sortie_j1 ~ df$renal_disease)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df1$bilan_entre_sortie_j1 ~ df$malignant_cancer)
+```
+
+```{r}
+# aids            
+boxplot(df1$bilan_entre_sortie_j1 ~ df$aids)
+```
+
+```{r}
+# malignant_cancer            
+boxplot(df1$bilan_entre_sortie_j1 ~ df$indicatrice_deces_j1)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df1$bilan_entre_sortie_j1 ~ df$indicatrice_temperature_j1)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df1$bilan_entre_sortie_j1~ df$indicatrice_glycemie_j1)
+```
+
+
+```{r warning=FALSE}
+#vis_j1
+ggplot(df1) + geom_point(aes(x = anchor_age, y = abs(bilan_entre_sortie_j1)))
+
+```
+
+
+```{r warning=FALSE}
+ggplot(df1) + geom_point(aes(x = `lactate_J1(mmol/L)`, y = bilan_entre_sortie_j1))
+```
+
+```{r message=FALSE, warning=FALSE}
+#phlabevents_J1
+ggplot(df1) + geom_point(aes(x = phlabevents_J1, y = bilan_entre_sortie_j1))
+```
+
+```{r warning=FALSE}
+ggplot(df1) + geom_point(aes(x = `albumin_J1(g/dL)`, y = bilan_entre_sortie_j1))
+```
+
+```{r warning=FALSE}
+
+ggplot(df1) + geom_point(aes(x =`index_cardiac_min_J1(L/min/m2)`, y = bilan_entre_sortie_j1))
+```
+
+# Statistiques descriptives à J2
+
+Pour faire la statistique descriptive à J2, on enlève tous les patients qui sont morts à J1.
+  
+```{r}
+# Selectionne tous les individus qui ne sont pas morts à J0
+df2<-df %>% 
+  filter(indicatrice_deces_j0==1)
+```
+
+
+# Statistique univarié à J2
+
+Bref aperçu de toutes les variables.
+
+```{r}
+glimpse(df2)
+```
+
+
+# Variables qualitatives
+
+```{r}
+freq(df2$anchor_age, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+
+```{r}
+
+freq(df2$gender, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+```{r}
+# Temprérature à JO
+freq(df2$indicatrice_temperature_j1, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+```{r}
+#indicatrice de la glycémie à J0
+freq(df2$indicatrice_glycemie_j2, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Le nombre de décès à J0
+
+```{r}
+#indicatrice_deces_j0
+freq(df2$indicatrice_deces_j2, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Nombre d'individus dyalisés à J0
+
+```{r}
+# Individus dialysés à J1
+freq(df2$dialysis_patient_J2, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une défaillance cardiaque
+
+```{r}
+# heart_failure
+
+freq(df2$heart_failure, valid = FALSE, total = TRUE, sort = "dec")
+
+```
+
+Les individus diagnostiqués obèses
+```{r}
+#obesity  
+freq(df2$obesity, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus ayant une maladie pulmonaire chronique
+
+```{r}
+#chronic_pulmonary_disease  
+freq(df2$chronic_pulmonary_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une maladie hépathique
+
+```{r}
+#liver_disease        
+freq(df2$liver_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont le diabètes
+
+```{r}
+#diabetes       
+freq(df2$diabetes, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus qui ont une maladie rénale
+
+```{r}
+#renal_disease  
+freq(df2$renal_disease, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+Les individus atteint du cancer
+
+```{r}
+#malignant_cancer 
+freq(df2$malignant_cancer, valid = FALSE, total = TRUE, sort = "dec")
+
+```
+
+Les individus atteint du VIH
+
+```{r}
+#aids   
+freq(df2$aids, valid = FALSE, total = TRUE, sort = "dec")
+```
+
+
+# variables quantitatives
+
+```{r}
+#thermodilution
+
+
+summary(df2$`index_cardiac_min_J1(L/min/m2)`)
+summary(df2$`index_cardiac_moyen_J1(L/min/m2)`)
+```
+
+```{r}
+#thermodilution
+
+
+summary(df2$`thermodilutionCO_max_J1(L/min)`)
+summary(df2$`thermodilutionCO_min_J1(L/min)`)
+```
+
+```{r}
+
+#phlabevents_J0
+summary(df2$phlabevents_J1)
+```
+
+```{r}
+#albumin_J0
+summary(df2$`albumin_J1(g/dL)`)
+```
+
+```{r}
+#lactateJ1
+summary(df2$`lactate_J0(mmol/L)` )
+
+```
+
+```{r}
+# PaO2_FiO2
+summary(df2$PaO2_FiO2_max_J1 )
+summary(df2$PaO2_FiO2_min_J1 )
+
+```
+```{r}
+# vis
+summary(df2$vis_j2)
+```
+
+```{r}
+# bilan_entre_sortie_j0
+summary( df2$bilan_entre_sortie_j2 )
+```
+
+```{r}
+# Répartition du bilan
+hist(df2$bilan_entre_sortie_j2, col = "skyblue",
+     main = "Répartition bilan/sortiej1",
+     xlab = "bilan",
+     ylab = "Effectif")
+```
+
+```{r}
+
+hist(df2$anchor_age, col = "skyblue",
+     main = "Répartition bilan/sortiej1",
+     xlab = "bilan",
+     ylab = "Effectif", breaks = 2)
+```
+
+# Statistique bivariée
+
+```{r}
+#Croisement
+boxplot(df2$bilan_entre_sortie_j2 ~ df$gender)
+```
+
+
+```{r}
+boxplot(df2$bilan_entre_sortie_j2 ~ df$dialysis_patient_J1)
+```
+
+
+```{r}
+#heart_failure 
+boxplot(df2$bilan_entre_sortie_j2 ~ df$heart_failure)
+```
+
+
+```{r}
+#obesity     
+boxplot(df2$bilan_entre_sortie_j2 ~ df$obesity)
+```
+
+
+```{r}
+#chronic_pulmonary_disease    
+boxplot(df2$bilan_entre_sortie_j2 ~ df$chronic_pulmonary_disease)
+```
+
+
+```{r}
+#liver_disease   
+boxplot(df2$bilan_entre_sortie_j2 ~ df$liver_disease)
+```
+
+
+
+
+```{r}
+# renal_disease  
+boxplot(df1$bilan_entre_sortie_j1 ~ df$diabetes)
+```
+
+
+```{r}
+# malignant_cancer 
+boxplot(df2$bilan_entre_sortie_j2~ df$renal_disease)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df2$bilan_entre_sortie_j2~ df$malignant_cancer)
+```
+
+```{r}
+# aids            
+boxplot(df2$bilan_entre_sortie_j2 ~ df$aids)
+```
+
+```{r}
+# malignant_cancer            
+boxplot(df2$bilan_entre_sortie_j2 ~ df$indicatrice_deces_j2)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df1$bilan_entre_sortie_j2 ~ df$indicatrice_temperature_j2)
+```
+
+
+```{r}
+# malignant_cancer            
+boxplot(df1$bilan_entre_sortie_j2~ df$indicatrice_glycemie_j2)
+```
+
+
+```{r warning=FALSE}
+#vis_j1
+ggplot(df2) + geom_point(aes(x = anchor_age, y = abs(bilan_entre_sortie_j2)))
+
+```
+
+
+```{r warning=FALSE}
+ggplot(df2) + geom_point(aes(x = `lactate_J2(mmol/L)`, y = bilan_entre_sortie_j2))
+```
+
+```{r message=FALSE, warning=FALSE}
+#phlabevents_J1
+ggplot(df2) + geom_point(aes(x = phlabevents_J2, y = bilan_entre_sortie_j2))
+```
+
+```{r warning=FALSE}
+ggplot(df2) + geom_point(aes(x = `albumin_J2(g/dL)`, y = bilan_entre_sortie_j2))
+```
+
+```{r warning=FALSE}
+
+ggplot(df2) + geom_point(aes(x =`index_cardiac_min_J2(L/min/m2)`, y = bilan_entre_sortie_j2))
+```
+
+
